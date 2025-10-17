@@ -1,0 +1,5 @@
+# Optional dependencies for semantic deduplication
+# Install with: pip install -r requirements-semantic.txt
+# Memory usage: ~100MB (model download + runtime)
+
+sentence-transformers>=2.2.0

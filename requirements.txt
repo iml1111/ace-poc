@@ -1,0 +1,21 @@
+# Core dependencies
+pydantic>=2.0.0
+orjson>=3.9.0
+python-dotenv>=1.0.0
+
+# LLM client
+anthropic>=0.18.0
+httpx>=0.24.0
+
+# Utilities
+numpy>=1.24.0
+tqdm>=4.65.0
+
+# Development
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+
+# Optional: Semantic deduplication (improved duplicate detection)
+# Requires ~100MB memory. Install only if you want semantic deduplication:
+# pip install -r requirements-semantic.txt
+# Then set ACE_USE_SEMANTIC_DEDUP=true in .env
