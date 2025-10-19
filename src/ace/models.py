@@ -151,7 +151,7 @@ class GenOutput(StrictBaseModel):
     """Output from Generator agent."""
     reasoning: str = Field(..., description="Concise step-by-step analysis")
     bullet_ids: List[str] = Field(default_factory=list, description="Playbook item IDs used")
-    final_answer: Union[str, Dict[str, Any]] = Field(..., description="Final answer (text or structured)")
+    final_answer: Union[str, Dict[str, Any], List[Any]] = Field(..., description="Final answer (text, dict, or list)")
 
 
 # ============================================================================
@@ -167,8 +167,8 @@ class BulletTag(StrictBaseModel):
 class ReflInput(StrictBaseModel):
     """Input to Reflector agent."""
     question: Dict[str, Any]
-    predicted_answer: Union[str, Dict[str, Any]]
-    ground_truth: Optional[Union[str, Dict[str, Any]]] = None
+    predicted_answer: Union[str, Dict[str, Any], List[Any]]
+    ground_truth: Optional[Union[str, Dict[str, Any], List[Any]]] = None
     env_feedback: Optional[Dict[str, Any]] = None  # pass/fail, errors, traces
     gen_reasoning: str
     used_bullet_ids: List[str]

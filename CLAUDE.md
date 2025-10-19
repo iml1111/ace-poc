@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**Last Updated**: 2025-10-20
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
@@ -176,6 +178,74 @@ pip install -r requirements.txt
 5. Curator: 검증된 델타 적용
 6. 플레이북 업데이트 및 다음 이터레이션
 
+### 프롬프트 진화 메커니즘 (Context Engineering)
+
+**핵심 원리**: "Context Engineering, Not Prompt Engineering"
+
+ACE에서 프롬프트는 두 부분으로 구성:
+1. **System Prompt (고정)**: src/ace/prompts.py에 정의, 영구 불변
+2. **User Prompt (동적)**: playbook + reflection + question으로 구성
+
+**진화 대상**: User Prompt의 Playbook 부분만 진화
+
+**예시** (src/ace/prompts.py):
+
+```python
+# System Prompt - 영원히 고정
+GENERATOR_SYSTEM_PROMPT = """You are an analysis expert tasked with solving tasks using:
+1. Your general knowledge
+2. A curated Playbook of strategies, formulas, pitfalls, checklists, and examples
+3. An optional Reflection summarizing prior mistakes and fixes
+..."""
+
+# User Prompt - Playbook 부분이 진화
+def create_generator_user_prompt(
+    playbook_items: list,  # 이 부분이 0개 → 20개로 성장
+    reflection: Dict[str, Any] | None,
+    question: Dict[str, Any]
+) -> str:
+    return json.dumps({
+        "playbook": {"items": playbook_items},  # 진화 대상
+        "reflection": reflection,
+        "question": question
+    })
+```
+
+**델타 업데이트 예시**:
+
+```python
+# add: 새 전략 추가
+{
+    "operation": "add",
+    "item_id": "321fe6e22562",
+    "category": "strategy",
+    "title": "Test-First Span Extraction",
+    "content": "Before calculating positions, first identify exact target strings...",
+    "tags": ["span_extraction", "validation", "test_first"]
+}
+
+# amend: 기존 항목 개선
+{
+    "operation": "amend",
+    "bullet_id": "b7b314eff6e4",
+    "content_append": "9. Check annotation guidelines for entity-specific boundary rules",
+    "tags_add": ["guidelines", "entity_types"]
+}
+
+# deprecate: 유해한 전략 표시
+{
+    "operation": "deprecate",
+    "bullet_id": "f959d4fd77dd",
+    "reason": "Manual character counting is error-prone, use string.find() instead"
+}
+```
+
+**결과**:
+- System prompt는 교과서처럼 영구 고정
+- Playbook은 참고 노트처럼 계속 성장
+- 이전 지식 보존 (덮어쓰기 없음)
+- 버전 관리 및 롤백 가능
+
 ## Research Context
 
 이 POC는 ACE 논문의 핵심 가설을 검증:
@@ -188,3 +258,45 @@ pip install -r requirements.txt
 - Context collapse 사례
 - 누적 성능 개선 곡선
 - 도메인 특화 지식 보존율
+
+## Experimental Results
+
+### NER 진화 실험 (2025-10-19)
+
+**실험 설정**:
+- 작업: Named Entity Recognition (개체명 인식)
+- 데이터셋: CoNLL-2003 기반 토이 샘플 (5개)
+- 목표: 빈 플레이북에서 시작하여 자동 진화 관찰
+- 실행 방식: `PYTHONPATH=src python -m ace offline --task ner --epochs 5`
+
+**진화 타임라인**:
+- **Epoch 1**: 0 → 8 items (기초 전략 발견)
+  - Validate Span Extraction, Character Position Counting Rules
+  - 첫 실패로부터 검증 체크리스트 생성
+- **Epoch 2**: 8 → 14 items (고급 전략 추가)
+  - Token Boundary Consistency, Test-First Approach
+  - 경계 처리 문제 해결을 위한 전략 축적
+- **Epoch 3**: 14 → 20 items (Early Stopping)
+  - Entity-Specific Boundary Rules, Multiple Entity Handling
+  - 수렴 감지로 조기 종료
+
+**프롬프트 크기 변화**:
+- 초기 프롬프트: ~40 토큰 (빈 플레이북)
+- 최종 프롬프트: ~900 토큰 (20개 항목)
+- 성장률: 22.5배 증가
+
+**주요 발견**:
+1. **창발적 전략**: string.find() 사용, test-first 접근법이 자연스럽게 발견됨
+2. **자기 교정**: 이전 실수를 반성하여 체크리스트와 pitfall 항목 자동 생성
+3. **지식 축적**: deprecated 태그로 유해한 전략 표시, 유용한 전략만 보존
+4. **카테고리 균형**: strategy 7개, formula 8개, checklist 1개, pitfall 3개, example 1개
+
+**아카이브 위치**: `experiments/ner-evolution-20251019_154015/`
+- `prompts_comparison.md`: 초기/최종 프롬프트 상세 비교
+- `initial_prompt_example.txt`: 빈 플레이북 프롬프트
+- `final_prompt_example.txt`: 20개 항목 최종 프롬프트
+- `final_playbook.json`: 진화된 플레이북
+- `offline_run_final.log`: 전체 실행 로그
+- `evolution_summary.txt`: Epoch별 요약
+
+**실험 보고서**: `report.md` (한글 종합 분석)

@@ -1,0 +1,198 @@
+=====================================================
+최종 프롬프트 (Epoch 3 완료 후)
+20개 항목 플레이북 포함
+=====================================================
+
+[SYSTEM PROMPT]
+You are an analysis expert tasked with solving tasks using:
+1. Your general knowledge
+2. A curated Playbook of strategies, formulas, pitfalls, checklists, and examples
+3. An optional Reflection summarizing prior mistakes and fixes
+
+Instructions:
+- Read the Playbook carefully and apply only relevant items
+- Avoid known pitfalls explicitly
+- If formulas or code snippets are relevant, use them appropriately
+- Double-check your logic before providing the final answer
+- Track which playbook item_ids you actually use in your reasoning
+- Output ONLY valid JSON with no markdown code fences
+
+Output format:
+{
+  "reasoning": "concise step-by-step analysis (no rambling)",
+  "bullet_ids": ["<item_id>", "..."],
+  "final_answer": "<string or JSON object>"
+}
+
+[USER PROMPT - 플레이북 20개 항목 포함]
+{
+  "playbook": {
+    "items": [
+      {
+        "item_id": "f959d4fd77dd",
+        "category": "strategy",
+        "title": "Validate Span Extraction",
+        "content": "After calculating character positions, always extract and verify the text using those positions matches the target exactly. This validation step catches position calculation errors before submitting.",
+        "tags": ["span_extraction", "validation", "accuracy", "deprecated"]
+      },
+      {
+        "item_id": "b7b314eff6e4",
+        "category": "checklist",
+        "title": "Character Position Counting Rules",
+        "content": "1. Start counting from index 0\n2. Count ALL characters including spaces and punctuation\n3. Test extraction using [start:end] slicing\n4. Verify extracted text matches target exactly\n5. Include ending punctuation when it's part of the entity\n6. Verify span length matches extracted text length\n7. For end positions, check both end and end+1 slices to make conscious boundary decisions\n8. Use string.find() to verify positions match expected target strings\n9. Check annotation guidelines for entity-specific boundary rules",
+        "tags": ["span_extraction", "indexing", "validation", "boundaries", "length_check", "off_by_one", "string_operations", "entity_types", "guidelines"]
+      },
+      {
+        "item_id": "cc2d4b8042e4",
+        "category": "pitfall",
+        "title": "Common Span Calculation Errors",
+        "content": "Watch for: 1) Starting count from wrong position 2) Skipping spaces/punctuation 3) Off-by-one errors in end positions 4) Not validating extracted spans match targets",
+        "tags": ["span_extraction", "errors", "debugging"]
+      },
+      {
+        "item_id": "16c30dffe1cd",
+        "category": "formula",
+        "title": "Span Validation Formula",
+        "content": "text[start:end] == target_span Also verify no characters are missing: len(target_span) == end - start",
+        "tags": ["span_extraction", "validation", "code", "verification"]
+      },
+      {
+        "item_id": "3a6bbf4dff4f",
+        "category": "pitfall",
+        "title": "Punctuation Boundary Errors",
+        "content": "Pay special attention to periods, commas and other punctuation at entity boundaries. Include ending punctuation in spans when it's part of the entity (e.g., 'Inc.' in 'Apple Inc.'). Test boundary cases explicitly.",
+        "tags": ["span_extraction", "punctuation", "boundaries", "accuracy"]
+      },
+      {
+        "item_id": "f1eede68d6ac",
+        "category": "example",
+        "title": "Entity Boundary Examples",
+        "content": "Correct spans with punctuation:\n'Apple Inc.' -> [0,10] (includes period)\n'$89.5B' -> [31,37] (includes dollar sign)\n'July 28, 2024' -> [41,53] (includes comma)",
+        "tags": ["span_extraction", "examples", "punctuation", "boundaries", "deprecated"]
+      },
+      {
+        "item_id": "b164b308e702",
+        "category": "strategy",
+        "title": "Token Boundary Consistency",
+        "content": "When extracting spans, be consistent in how you handle token boundaries. For dates, locations, and other entities, either always include or always exclude trailing spaces. Document your boundary convention and apply it uniformly.",
+        "tags": ["span_extraction", "boundaries", "consistency", "tokens"]
+      },
+      {
+        "item_id": "3e0b9569f4f9",
+        "category": "formula",
+        "title": "End Position Double-Check",
+        "content": "For end positions, verify both text[start:end] and text[start:end+1] to consciously decide if the additional character should be included in the token boundary. This helps catch off-by-one errors in end positions.",
+        "tags": ["span_extraction", "validation", "boundaries", "off_by_one"]
+      },
+      {
+        "item_id": "321fe6e22562",
+        "category": "strategy",
+        "title": "Test-First Span Extraction",
+        "content": "Before calculating positions, first identify the exact target strings ('$1.2M', '2024') you need to extract. Then use string.find() or similar to locate these strings in the text. This ensures you're working backwards from known-correct targets rather than forward from position calculations. This is especially crucial when dealing with multiple entities in the same text.",
+        "tags": ["span_extraction", "validation", "accuracy", "test_first", "multiple_entities"]
+      },
+      {
+        "item_id": "da9d1c72b9f8",
+        "category": "formula",
+        "title": "String Find Position Check",
+        "content": "target_text = '$1.2M'\nstart = text.find(target_text)\nend = start + len(target_text)\nassert text[start:end] == target_text",
+        "tags": ["span_extraction", "code", "validation", "string_operations"]
+      },
+      {
+        "item_id": "b0af1c1583be",
+        "category": "strategy",
+        "title": "Avoid Relative Position Calculations",
+        "content": "Never calculate positions by counting characters after markers like 'reported' or 'on'. Instead, always use string.find() to locate exact positions of the complete target string you want to extract.",
+        "tags": ["span_extraction", "accuracy", "string_operations", "best_practice"]
+      },
+      {
+        "item_id": "c364ae8a8f0c",
+        "category": "formula",
+        "title": "Multiple Entity Span Extraction",
+        "content": "For texts with multiple entities, extract each independently:\nfor target in ['Apple Inc.', '$89.5B', 'July 28, 2024']:\n    start = text.find(target)\n    end = start + len(target)\n    spans.append({'start': start, 'end': end})",
+        "tags": ["span_extraction", "code", "multiple_entities", "string_operations"]
+      },
+      {
+        "item_id": "9d7d1e154be3",
+        "category": "strategy",
+        "title": "Entity-Specific Boundary Rules",
+        "content": "Different entity types have different boundary conventions. For dates, include trailing periods (e.g., '15th.'). For organizations, include punctuation in abbreviations (e.g., 'Inc.'). For locations, typically exclude trailing punctuation unless part of the name. Document these rules per entity type.",
+        "tags": ["span_extraction", "boundaries", "entity_types", "conventions", "punctuation"]
+      },
+      {
+        "item_id": "cbc289732e9a",
+        "category": "formula",
+        "title": "Entity-Aware Length Calculation",
+        "content": "end = start + len(target_text)\nif entity_type == 'DATE' and text[end] == '.':\n    end += 1\nassert text[start:end].rstrip('.') == target_text",
+        "tags": ["span_extraction", "code", "boundaries", "entity_types", "validation"]
+      }
+    ]
+  },
+  "reflection": {
+    "reasoning_summary": "Previous attempt correctly identified entities but had boundary issues with punctuation handling",
+    "error_identification": "End position for 'Microsoft Corp.' didn't include the period, and 'July 15th.' boundary was incorrect",
+    "root_cause_analysis": "Generic position calculation doesn't account for entity-type-specific punctuation rules. Organization names with abbreviations need periods included, dates may or may not depending on context.",
+    "correct_approach": "Apply entity-specific boundary rules from playbook item 9d7d1e154be3. Use formula cbc289732e9a for entity-aware length calculation. Always validate final spans using string.find() as in da9d1c72b9f8.",
+    "key_insight": "Different entity types require different punctuation handling at boundaries - cannot use one-size-fits-all approach"
+  },
+  "question": {
+    "task": "label_spans",
+    "text": "Microsoft Corp. reported $500K on July 15th.",
+    "targets": ["Microsoft Corp.", "$500K", "July 15th."]
+  }
+}
+
+=====================================================
+특징:
+- 플레이북: 20개 항목 (14개 표시, 실제로는 20개 전체 포함)
+  * 전략 7개
+  * 공식 8개
+  * 체크리스트 1개
+  * 함정 3개
+  * 예시 1개 (deprecated)
+- Reflection: 이전 샘플의 반성 포함
+- 학습된 지식:
+  * 테스트 우선 접근법
+  * String.find() 사용
+  * 엔티티별 경계 규칙
+  * 9포인트 검증 체크리스트
+  * 피해야 할 함정들
+
+실제 Generator 응답 (예상):
+{
+  "reasoning": "Following test-first strategy (321fe6e22562), I'll first identify target strings: 'Microsoft Corp.', '$500K', 'July 15th.'. Then using string.find() formula (da9d1c72b9f8):
+  
+1. 'Microsoft Corp.' - start = text.find('Microsoft Corp.') = 0, end = 0 + 15 = 15
+   Applying entity-specific rules (9d7d1e154be3): organizations include abbreviation periods
+   Validation (16c30dffe1cd): text[0:15] = 'Microsoft Corp.' ✓
+
+2. '$500K' - start = text.find('$500K') = 25, end = 25 + 5 = 30
+   Validation: text[25:30] = '$500K' ✓
+
+3. 'July 15th.' - start = text.find('July 15th.') = 34, end = 34 + 10 = 44
+   Entity-aware length (cbc289732e9a): DATE type includes trailing period
+   Validation: text[34:44] = 'July 15th.' ✓
+  
+Using checklist b7b314eff6e4 points 3,4,6,8 for final verification.",
+  "bullet_ids": ["321fe6e22562", "da9d1c72b9f8", "9d7d1e154be3", "16c30dffe1cd", "cbc289732e9a"],
+  "final_answer": {
+    "spans": [
+      {"start": 0, "end": 15, "label": "ORG"},
+      {"start": 25, "end": 30, "label": "MONEY"},
+      {"start": 34, "end": 44, "label": "DATE"}
+    ]
+  }
+}
+
+결과: 더 체계적인 추론 (5개 playbook 항목 활용)
+=====================================================
+
+프롬프트 크기 비교:
+- 초기: ~150 바이트, ~40 토큰
+- 최종: ~3,500 바이트, ~900 토큰 (22.5배 증가)
+
+질적 변화:
+- 추상적 지시 → 구체적 실행 가이드
+- 제로샷 → 경험 기반 추론
+- 시행착오 → 검증된 패턴
+=====================================================

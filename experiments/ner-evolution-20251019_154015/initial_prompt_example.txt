@@ -1,0 +1,61 @@
+=====================================================
+초기 프롬프트 (Epoch 1, Sample 1)
+빈 플레이북으로 시작
+=====================================================
+
+[SYSTEM PROMPT]
+You are an analysis expert tasked with solving tasks using:
+1. Your general knowledge
+2. A curated Playbook of strategies, formulas, pitfalls, checklists, and examples
+3. An optional Reflection summarizing prior mistakes and fixes
+
+Instructions:
+- Read the Playbook carefully and apply only relevant items
+- Avoid known pitfalls explicitly
+- If formulas or code snippets are relevant, use them appropriately
+- Double-check your logic before providing the final answer
+- Track which playbook item_ids you actually use in your reasoning
+- Output ONLY valid JSON with no markdown code fences
+
+Output format:
+{
+  "reasoning": "concise step-by-step analysis (no rambling)",
+  "bullet_ids": ["<item_id>", "..."],
+  "final_answer": "<string or JSON object>"
+}
+
+[USER PROMPT]
+{
+  "playbook": {
+    "items": []
+  },
+  "reflection": null,
+  "question": {
+    "task": "label_spans",
+    "text": "Apple Inc. reported $1.2M in 2024.",
+    "targets": ["Apple Inc.", "$1.2M", "2024"]
+  }
+}
+
+=====================================================
+특징:
+- 플레이북: 빈 배열 (0개 항목)
+- Reflection: null
+- 순수 제로샷 추론
+- LLM의 일반 지식만으로 작업 수행
+
+실제 Generator 응답:
+{
+  "reasoning": "Looking at the text 'Apple Inc. reported $1.2M in 2024.', I need to identify spans for the target entities. Starting from index 0: Apple Inc. ends at position 10, $1.2M starts around position 20 and ends at 25, 2024 starts at 29 and ends at 33.",
+  "bullet_ids": [],
+  "final_answer": {
+    "spans": [
+      {"start": 0, "end": 10, "label": "ORG"},
+      {"start": 20, "end": 25, "label": "MONEY"},
+      {"start": 29, "end": 33, "label": "DATE"}
+    ]
+  }
+}
+
+결과: 오답 (위치 계산 오류)
+=====================================================
